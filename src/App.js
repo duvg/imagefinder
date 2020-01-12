@@ -6,6 +6,8 @@ function App() {
 
   const [ busqueda, setBusqueda ] = useState('');
   const [ imagenes, setImagenes ] = useState([]);
+  const [ paginaActual, setPaginaActual] = useState(1);
+  const [ totalPaginas, setTotalPaginas ] = useState(1);
 
   useEffect(
     () => {
@@ -18,17 +20,40 @@ function App() {
         const key = '2808211-7a2ab8e4ccc07d263d02f9aa6';
         const imagenesPorPagina = 30;
 
-        const url = `https://pixabay.com/api/?key=${key}&q=${busqueda}&per_page=${imagenesPorPagina}`;
+        const url = `https://pixabay.com/api/?key=${key}&q=${busqueda}&per_page=${imagenesPorPagina}&page=${paginaActual}`;
 
         const respuesta = await fetch(url);
         const resultado = await respuesta.json();
 
         setImagenes(resultado.hits);
+
+        // Calcular el total de pagians
+
+        const totalPaginas = Math.ceil(resultado.totalHits / imagenesPorPagina);
+        setTotalPaginas(totalPaginas);
+
+        // Ir a la parte superior de la pagina
+        const jumbotron = document.querySelector('.jumbotron');
+        jumbotron.scrollIntoView({block: 'start', behavior: 'smooth'}); 
+        
       }
 
       consultaApi();
-    }, [busqueda]
+    }, [busqueda, paginaActual]
   );
+
+  const paginaAnterior = () => {
+    let anterior = paginaActual - 1; 
+
+    // Actualizar pagina actual
+    setPaginaActual(anterior);
+  }
+
+  const paginaSiguiente = () => {
+    let siguiente = paginaActual + 1;
+    
+    setPaginaActual(siguiente);
+  }
 
   return (
     <div className="app container">
@@ -41,6 +66,17 @@ function App() {
         <ListadoImagenes 
           imagenes={imagenes}
         />
+
+        { (paginaActual === 1) ? null : (
+          <button onClick={paginaAnterior} type="button" className="btn btn-info mr-1">&laquo; Anterior</button>
+        ) }
+
+        { (paginaActual === totalPaginas) ? null : (
+          <button onClick={paginaSiguiente} type="button" className="btn btn-info mr-1">Siguiente &raquo;</button>
+        ) }
+
+        
+        
       </div>
     </div>
   );
